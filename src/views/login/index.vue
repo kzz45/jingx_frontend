@@ -83,7 +83,6 @@ export default {
     return {
       loginForm: {
         username: "admin",
-        // password: "KNXDpIBFbJoJL6sY94X5Qvquwn7zMWG3",
         password: "9PUAWLGEqVmhrCchigcWjzsspgSKlt0i",
       },
       loginRules: {

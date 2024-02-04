@@ -121,7 +121,7 @@ export default {
             itemB.metadata.creationTimestamp.seconds
           );
         });
-        console.log(project_list_filter2);
+        // console.log(project_list_filter2);
         this.tag_list = [];
         for (let pl of project_list_filter2) {
           this.tag_list.push({

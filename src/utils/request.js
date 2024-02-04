@@ -14,7 +14,7 @@ async function getService() {
     baseURL: "https://" + String(env.VUE_APP_BASE_API),
     timeout: 5000,
   };
-  console.log("config", config);
+  // console.log("config", config);
   const service = axios.create(config);
 
   service.interceptors.request.use(
@@ -37,22 +37,22 @@ async function getService() {
       let resp = requestproto.Response.decode(buffer);
 
       if (resp.code === 401) {
-        console.log("code: 401", resp);
+        // console.log("code: 401", resp);
         Message({
           message: resp.message,
           type: "error",
           duration: 5 * 1000,
         });
       }
-      if (resp.code === 1) {
-        console.log("code: 1", resp);
+      if (resp.code === 403) {
+        // console.log("code: 403", resp);
         Message({
-          message: resp.message,
+          message: "账户或者密码错误",
           type: "error",
           duration: 5 * 1000,
         });
       }
-      console.log("request resp: ", resp);
+      // console.log("request resp: ", resp);
       let gmtData = null;
       if (response.config.params.serviceApi === "Context") {
         // gmtData = requestproto[`${response.config.params.serviceApi}`].decode(
@@ -67,7 +67,7 @@ async function getService() {
       return gmtData;
     },
     (error) => {
-      console.log("err" + error);
+      // console.log("err" + error);
       Message({
         message: error.message,
         type: "error",

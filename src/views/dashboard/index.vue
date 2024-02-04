@@ -10,7 +10,7 @@
         >新增</el-button
       >
       <el-table :data="ns_list" size="small" empty-text="啥也没有" border>
-        <el-table-column label="名称" prop="name"></el-table-column>
+        <el-table-column label="项目" prop="name"></el-table-column>
         <el-table-column label="公网" prop="publicAddr"></el-table-column>
         <el-table-column label="内网" prop="privateAddr"></el-table-column>
         <el-table-column label="创建时间">

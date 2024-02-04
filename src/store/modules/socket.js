@@ -41,7 +41,7 @@ const mutations = {
     // 连接成功时启动定时发送心跳消息，避免被服务器断开连接
     console.log("onopen");
     state.socket.heartBeatTimer = setInterval(() => {
-      console.log("socket heartbeat ping:", new Date());
+      // console.log("socket heartbeat ping:", new Date());
       serverPing();
     }, state.socket.heartBeatInterval);
   },

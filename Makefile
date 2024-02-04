@@ -1,10 +1,13 @@
-.PHONY: web
+.PHONY: dev
 
-# DOCKER_DOMAIN := xxx
+# HARBOR_DOMAIN := xxx
 PROJECT := neverdown
-tag := latest
-# IMAGE := "$(DOCKER_DOMAIN)/$(PROJECT)/jingx-dashboard:$(tag)"
+tag ?= 0.0.1
+# IMAGE := "$(HARBOR_DOMAIN)/$(PROJECT)/jingx-dashboard:$(tag)"
 IMAGE := "$(PROJECT)/jingx-dashboard:$(tag)"
+
+dev:
+	npm run dev
 
 web:
 	docker buildx build -f Dockerfile -t $(IMAGE) .
@@ -17,4 +20,5 @@ web-quick:
 	rm -rf dist
 
 protox:
-	./node_modules/protobufjs-cli/bin/pbjs -t static-module --es6 -w es6 -o src/proto/proto.js src/proto/protos/*.proto
+	./node_modules/protobufjs-cli/bin/pbjs \
+	-t static-module --es6 -w es6 -o src/proto/proto.js src/proto/protos/*.proto

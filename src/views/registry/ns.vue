@@ -10,17 +10,9 @@
         >新增</el-button
       >
       <el-table :data="ns_list" size="small" empty-text="啥也没有" border>
-        <el-table-column label="名称" prop="name"></el-table-column>
-        <el-table-column label="域名">
-          <template slot-scope="scoped">
-            <el-tag
-              v-for="item in scoped.row.domains"
-              type="text"
-              @click="copy(item)"
-              >{{ item }}</el-tag
-            >
-          </template>
-        </el-table-column>
+        <el-table-column label="项目" prop="name"></el-table-column>
+        <el-table-column label="公网" prop="publicAddr"></el-table-column>
+        <el-table-column label="内网" prop="privateAddr"></el-table-column>
         <el-table-column label="创建时间">
           <template slot-scope="scoped">
             {{ scoped.row.create_time | parseTime("{y}-{m}-{d} {h}:{i}:{s}") }}
@@ -90,21 +82,21 @@
               <el-input v-model="ns_form.name" placeholder=""></el-input>
             </el-form-item>
           </el-col>
-          <el-col :span="12">
+          <!-- <el-col :span="12">
             <el-form-item label="描述" prop="desc">
               <el-input v-model="ns_form.desc" placeholder=""></el-input>
             </el-form-item>
-          </el-col>
+          </el-col> -->
         </el-row>
         <el-row>
           <el-col :span="12">
             <el-form-item label="地址1" prop="addr1">
-              <el-input v-model="ns_form.addr1" placeholder=""></el-input>
+              <el-input v-model="ns_form.publicAddr" placeholder=""></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="地址2" prop="addr2">
-              <el-input v-model="ns_form.addr2" placeholder=""></el-input>
+              <el-input v-model="ns_form.privateAddr" placeholder=""></el-input>
             </el-form-item>
           </el-col>
         </el-row>
@@ -153,13 +145,14 @@ export default {
         id: null,
         name: null,
         desc: null,
-        domains: [],
+        publicAddr: null,
+        privateAddr: null,
       },
       ns_form_rules: {},
     };
   },
   mounted() {
-    this.socket_connect();
+    this.get_project_list();
   },
   watch: {
     message: function () {
@@ -173,47 +166,86 @@ export default {
   methods: {
     goto_repo(row) {
       localStorage.setItem("projectName", row.name);
-      this.$router.push({ path: "/registry/repo" });
+      this.$router.push({ path: "/repo/repo" });
     },
     create_ns() {
       this.ns_dialog = true;
       this.dialogStatus = "create_ns";
+      this.ns_form = Object.assign({}, "");
     },
     update_ns(row) {
       this.ns_dialog = true;
       this.dialogStatus = "update_ns";
       this.ns_form = Object.assign({}, row);
     },
-    delete_ns(row) {},
+    delete_ns(row) {
+      const projectObj = new protoApi.Project();
+      projectObj.metadata = { name: row.name };
+      const gvk = {
+        group: "jingx",
+        version: "v1",
+        kind: "Project",
+      };
+      const senddata = getProtoParam(projectObj, gvk);
+      const new_delete_data = init_socket_data(
+        "discovery-jingx",
+        "jingx-v1-Project",
+        "delete",
+        senddata
+      );
+      sendSocketMessage(new_delete_data, store);
+      this.get_project_list();
+    },
     submit_ns() {
       if (this.dialogStatus === "create_ns") {
         const projectObj = new protoApi.Project();
         projectObj.metadata = { name: this.ns_form.name };
-        const domains = [];
-        domains.push(this.ns_form.addr1);
-        domains.push(this.ns_form.addr2);
-        projectObj.spec = { generateId: "", domains: domains };
+        projectObj.spec = {
+          id: "",
+          publicAddr: this.ns_form.publicAddr,
+          privateAddr: this.ns_form.privateAddr,
+        };
         const gvk = {
           group: "jingx",
           version: "v1",
           kind: "Project",
         };
         const senddata = getProtoParam(projectObj, gvk);
-        // console.log("create: ", senddata);
         const new_create_data = init_socket_data(
           "discovery-jingx",
-          "guldan-v1-Project",
+          "jingx-v1-Project",
           "create",
           senddata
         );
-        // console.log(new_create_data);
         sendSocketMessage(new_create_data, store);
         this.ns_dialog = false;
+        this.get_project_list();
       } else if (this.dialogStatus === "update_ns") {
-        //
+        const projectObj = new protoApi.Project();
+        projectObj.metadata = { name: this.ns_form.name };
+        projectObj.spec = {
+          id: "",
+          publicAddr: this.ns_form.publicAddr,
+          privateAddr: this.ns_form.privateAddr,
+        };
+        const gvk = {
+          group: "jingx",
+          version: "v1",
+          kind: "Project",
+        };
+        const senddata = getProtoParam(projectObj, gvk);
+        const new_update_data = init_socket_data(
+          "discovery-jingx",
+          "jingx-v1-Project",
+          "update",
+          senddata
+        );
+        sendSocketMessage(new_update_data, store);
+        this.ns_dialog = false;
+        this.get_project_list();
       }
     },
-    socket_connect() {
+    get_project_list() {
       const send_data = init_socket_data(
         "discovery-jingx",
         "jingx-v1-Project",
@@ -223,6 +255,7 @@ export default {
     },
     socket_onmessage(msg) {
       const result = protoRequest.Response.decode(msg);
+      // console.log(result, "-----------");
       if (result.code === 1) {
         const err_msg = String.fromCharCode.apply(null, result.raw);
         this.$message({
@@ -245,7 +278,8 @@ export default {
         for (let pl of project_list) {
           this.ns_list.push({
             name: pl.metadata.name,
-            domains: pl.spec.domains,
+            publicAddr: pl.spec.publicAddr,
+            privateAddr: pl.spec.privateAddr,
             create_time: pl.metadata.creationTimestamp.seconds,
           });
         }

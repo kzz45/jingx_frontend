@@ -46,7 +46,7 @@ router.beforeEach(async (to, from, next) => {
       }
     }
   } else {
-    console.log("no token=========", to.path);
+    // console.log("no token=========", to.path);
     if (whiteList.indexOf(to.path) !== -1) {
       next();
     } else {
